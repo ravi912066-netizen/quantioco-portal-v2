@@ -75,7 +75,7 @@ export default function Login() {
                 <div className="text-center mb-8">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-2xl animated-gradient flex items-center justify-center shadow-glow p-0.5 overflow-hidden">
                         <div className="w-full h-full bg-dark-900 rounded-2xl flex items-center justify-center">
-                            <img src="/quantioco.svg" alt="Quantioco Logo" className="w-10 h-10" />
+                            <img src="./quantioco.svg" alt="Quantioco Logo" className="w-10 h-10" />
                         </div>
                     </div>
                     <h2 className="text-3xl font-black text-white tracking-tighter uppercase">
