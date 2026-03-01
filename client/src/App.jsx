@@ -78,7 +78,7 @@ const AppRoutes = () => {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter basename={import.meta.env.BASE_URL}>
+      <BrowserRouter>
         <AppRoutes />
         <Toaster
           position="top-right"
