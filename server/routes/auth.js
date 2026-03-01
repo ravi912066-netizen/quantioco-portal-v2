@@ -83,24 +83,14 @@ router.post('/send-otp', async (req, res) => {
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, phone, password, role, otp } = req.body;
-        const identifier = phone; // using phone for registration verification
+        const { name, email, phone, password, role } = req.body;
 
-        // ALL Users must verify OTP
-        const otpRecord = await OTP.findOne({ identifier, otp });
-        if (!otpRecord) return res.status(400).json({ message: 'Invalid or expired OTP' });
-        await OTP.deleteOne({ _id: otpRecord._id });
+        // Check if user already exists
+        const existing = await User.findOne({ email });
+        if (existing) return res.status(400).json({ message: 'Email already registered' });
 
-        // Create user. 
-        // Auto-approve if OTP verified (User's latest request)
-        const user = await User.create({ name, email, phone, password, role: role || 'student', isApproved: true });
-
-        if (!user.isApproved) {
-            return res.status(201).json({
-                message: 'Registration successful. Waiting for Admin approval.',
-                pendingApproval: true
-            });
-        }
+        // Create user directly (no OTP required)
+        const user = await User.create({ name, email, phone: phone || '', password, role: role || 'student', isApproved: true });
 
         res.status(201).json({
             token: generateToken(user._id),
