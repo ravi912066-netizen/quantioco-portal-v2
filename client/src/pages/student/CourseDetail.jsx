@@ -224,7 +224,7 @@ export default function CourseDetail() {
                     {/* Tabs and Info */}
                     <div className="glass-card p-8">
                         <div className="flex gap-8 border-b border-white/5 mb-8 overflow-x-auto">
-                            {['Overview', 'Lecture Notes', 'Assignments', 'Student Doubts', 'Classes', 'Contests', 'Quizzes', ...(user?.role === 'admin' ? ['Enrolled Cadets'] : [])].map((tab, i) => (
+                            {['Overview', 'Assignments', 'Live Arena', 'Community'].map((tab, i) => (
                                 <button
                                     key={i}
                                     onClick={() => setActiveTab(tab)}
@@ -250,113 +250,132 @@ export default function CourseDetail() {
                                 </div>
                             )}
 
-                            {activeTab === 'Lecture Notes' && (
-                                <div className="py-8 text-center text-gray-500">
-                                    <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                    <p className="font-bold uppercase tracking-widest text-xs">No notes available for this lecture yet.</p>
-                                </div>
-                            )}
-
                             {activeTab === 'Assignments' && (
-                                <div className="space-y-4">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                     {user?.role === 'admin' && (
-                                        <div className="flex justify-end mb-4">
-                                            <button onClick={() => setShowAssignmentModal(true)} className="btn-primary flex items-center gap-2 text-xs py-2 px-4 shadow-glow shadow-primary-500/20">
-                                                <Plus className="w-4 h-4" /> Add Assignment
-                                            </button>
-                                        </div>
-                                    )}
-                                    {assignments.length > 0 ? assignments.map(a => (
-                                        <div key={a._id} className="p-4 glass-card bg-white/5 border border-white/5 rounded-2xl flex justify-between items-center group">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-colors">
-                                                    <Code className="w-5 h-5" />
+                                        <div className="lg:col-span-1 glass-card p-6 border-primary-500/20 h-fit sticky top-8">
+                                            <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-white">
+                                                <div className="w-8 h-8 rounded-lg bg-primary-500/20 text-primary-500 flex items-center justify-center">
+                                                    <Plus className="w-4 h-4" />
+                                                </div>
+                                                Drop Assignment
+                                            </h3>
+                                            <form onSubmit={handleCreateAssignment} className="space-y-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Mission Title</label>
+                                                    <input required className="input-field w-full text-sm py-2" value={assignmentForm.title} onChange={e => setAssignmentForm({ ...assignmentForm, title: e.target.value })} placeholder="e.g. Array Mastery" />
                                                 </div>
                                                 <div>
-                                                    <h4 className="text-white font-bold">{a.title}</h4>
-                                                    <div className="flex items-center gap-2 mt-0.5">
-                                                        <span className="text-[10px] text-yellow-500 font-bold uppercase tracking-widest">{a.xpReward} XP Reward</span>
-                                                        {submittedTasks.includes(a._id) && (
-                                                            <span className="text-[10px] text-green-400 font-black tracking-widest uppercase bg-green-500/20 px-2 py-0.5 rounded border border-green-500/30">Submitted</span>
-                                                        )}
+                                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Briefing</label>
+                                                    <textarea required className="input-field w-full text-sm min-h-[100px]" value={assignmentForm.description} onChange={e => setAssignmentForm({ ...assignmentForm, description: e.target.value })} placeholder="What's the task?"></textarea>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Problem Link (Optional)</label>
+                                                    <input className="input-field w-full text-sm py-2" placeholder="e.g., LeetCode URL" value={assignmentForm.problemUrl} onChange={e => setAssignmentForm({ ...assignmentForm, problemUrl: e.target.value })} />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">XP Bounty</label>
+                                                        <input type="number" required className="input-field w-full text-sm py-2" value={assignmentForm.xpReward} onChange={e => setAssignmentForm({ ...assignmentForm, xpReward: e.target.value })} />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Deadline</label>
+                                                        <input type="date" required className="input-field w-full text-sm py-2" value={assignmentForm.deadline} onChange={e => setAssignmentForm({ ...assignmentForm, deadline: e.target.value })} />
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <a href={`/assignments`} className="badge bg-primary-500 text-white font-black uppercase tracking-widest transition-transform hover:scale-105">
-                                                {submittedTasks.includes(a._id) ? 'View Lab' : 'Start Lab'}
-                                            </a>
-                                        </div>
-                                    )) : (
-                                        <div className="py-8 text-center text-gray-500">
-                                            <Code className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                            <p className="font-bold uppercase tracking-widest text-xs">No active assignments for this course.</p>
+                                                <button type="submit" className="btn-primary w-full mt-4 flex items-center justify-center gap-2 py-2">
+                                                    Publish Task
+                                                </button>
+                                            </form>
                                         </div>
                                     )}
-                                </div>
-                            )}
-
-                            {activeTab === 'Student Doubts' && (
-                                <div className="py-8 text-center text-gray-500">
-                                    <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                    <p className="font-bold uppercase tracking-widest text-xs">Be the first to ask a question!</p>
-                                    <button onClick={() => setShowDoubtModal(true)} className="btn-secondary mt-4 text-xs">Ask Mentor</button>
-                                </div>
-                            )}
-
-                            {activeTab === 'Classes' && (
-                                <div className="py-8 text-center flex flex-col items-center justify-center">
-                                    <Video className="w-16 h-16 text-primary-500 mb-6 drop-shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
-                                    <h3 className="text-xl font-black text-white uppercase tracking-tighter mb-2">Live Masterclasses</h3>
-                                    <p className="text-gray-400 text-sm max-w-md mb-8">Join interactive sessions hosted by your instructor directly from the Command Center.</p>
-                                    <a href="/live" className="btn-primary animate-pulse flex items-center gap-2">
-                                        <Play className="w-4 h-4" /> Enter Live Arena
-                                    </a>
-                                </div>
-                            )}
-
-                            {activeTab === 'Contests' && (
-                                <div className="py-12 text-center flex flex-col items-center justify-center bg-dark-800 rounded-2xl border border-white/5 relative overflow-hidden group">
-                                    <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl group-hover:bg-yellow-500/20 transition-all duration-700"></div>
-                                    <Award className="w-16 h-16 text-yellow-500 mb-6 relative z-10" />
-                                    <h3 className="text-xl font-black text-white uppercase tracking-tighter mb-2 relative z-10">Combat Contests</h3>
-                                    <p className="text-gray-400 text-sm max-w-md mb-8 relative z-10">Compete globally against other cadets, earn rank points, and climb the leaderboard.</p>
-                                    <a href="/contests" className="bg-yellow-500 hover:bg-yellow-400 text-black px-8 py-3 rounded-xl font-black uppercase tracking-widest text-sm shadow-glow shadow-yellow-500/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 relative z-10">
-                                        View Battlegrounds <ChevronRight className="w-4 h-4" />
-                                    </a>
-                                </div>
-                            )}
-
-                            {activeTab === 'Quizzes' && (
-                                <div className="py-12 text-center flex flex-col items-center justify-center bg-dark-800 rounded-2xl border border-white/5 relative overflow-hidden group">
-                                    <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 rounded-full blur-3xl group-hover:bg-green-500/20 transition-all duration-700"></div>
-                                    <CheckCircle2 className="w-16 h-16 text-green-500 mb-6 relative z-10" />
-                                    <h3 className="text-xl font-black text-white uppercase tracking-tighter mb-2 relative z-10">Module Quizzes</h3>
-                                    <p className="text-gray-400 text-sm max-w-md mb-8 relative z-10">Test your knowledge with rapid-fire questions and secure bonus XP.</p>
-                                    <button className="bg-green-500 hover:bg-green-400 text-black px-8 py-3 rounded-xl font-black uppercase tracking-widest text-sm shadow-glow shadow-green-500/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 relative z-10">
-                                        Start Quiz <Play className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            )}
-
-                            {activeTab === 'Enrolled Cadets' && user?.role === 'admin' && (
-                                <div className="space-y-4">
-                                    {course.enrolledStudents?.length > 0 ? course.enrolledStudents.map(studentId => (
-                                        <div key={studentId} className="p-4 glass-card bg-white/5 border border-white/5 rounded-2xl flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-full bg-primary-500/20 text-primary-400 flex items-center justify-center font-bold">
-                                                    S
+                                    <div className={user?.role === 'admin' ? 'lg:col-span-2 space-y-4' : 'lg:col-span-3 space-y-4'}>
+                                        {assignments.length > 0 ? assignments.map(a => (
+                                            <div key={a._id} className="p-4 glass-card bg-white/5 border border-white/5 rounded-2xl flex justify-between items-center group">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                                                        <Code className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-white font-bold">{a.title}</h4>
+                                                        <div className="flex items-center gap-2 mt-0.5">
+                                                            <span className="text-[10px] text-yellow-500 font-bold uppercase tracking-widest">{a.xpReward} XP Reward</span>
+                                                            {submittedTasks.includes(a._id) && (
+                                                                <span className="text-[10px] text-green-400 font-black tracking-widest uppercase bg-green-500/20 px-2 py-0.5 rounded border border-green-500/30">Submitted</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <h4 className="text-white font-bold">Verified Cadet</h4>
-                                                    <p className="text-xs text-gray-400 uppercase tracking-widest mt-0.5 max-w-[200px] truncate">{studentId}</p>
-                                                </div>
+                                                <a href={`/assignments`} className="badge bg-primary-500 text-white font-black uppercase tracking-widest transition-transform hover:scale-105">
+                                                    {submittedTasks.includes(a._id) ? 'View Lab' : 'Start Lab'}
+                                                </a>
                                             </div>
-                                            <a href={`/admin/students`} className="btn-secondary text-xs">View Profile</a>
+                                        )) : (
+                                            <div className="py-8 text-center text-gray-500 glass-card border-dashed">
+                                                <Code className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                                <p className="font-bold uppercase tracking-widest text-xs">No active assignments deployed yet.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'Live Arena' && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="py-12 text-center flex flex-col items-center justify-center bg-dark-800 rounded-2xl border border-white/5 relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl group-hover:bg-primary-500/20 transition-all duration-700"></div>
+                                        <Video className="w-16 h-16 text-primary-500 mb-6 relative z-10" />
+                                        <h3 className="text-xl font-black text-white uppercase tracking-tighter mb-2 relative z-10">Live Masterclasses</h3>
+                                        <p className="text-gray-400 text-sm max-w-xs mx-auto mb-8 relative z-10">Join interactive sessions hosted directly from the Command Center.</p>
+                                        <a href="/live" className="btn-primary animate-pulse flex items-center gap-2 relative z-10 text-xs">
+                                            <Play className="w-4 h-4" /> Enter Call
+                                        </a>
+                                    </div>
+                                    <div className="py-12 text-center flex flex-col items-center justify-center bg-dark-800 rounded-2xl border border-white/5 relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl group-hover:bg-yellow-500/20 transition-all duration-700"></div>
+                                        <Award className="w-16 h-16 text-yellow-500 mb-6 relative z-10" />
+                                        <h3 className="text-xl font-black text-white uppercase tracking-tighter mb-2 relative z-10">Combat Contests</h3>
+                                        <p className="text-gray-400 text-sm max-w-xs mx-auto mb-8 relative z-10">Compete globally against other cadets, earn rank points.</p>
+                                        <a href="/contests" className="bg-yellow-500 hover:bg-yellow-400 text-black px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs shadow-glow shadow-yellow-500/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 relative z-10">
+                                            View Battlegrounds <ChevronRight className="w-4 h-4" />
+                                        </a>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'Community' && (
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                    {/* Component 1: Doubts */}
+                                    <div className="glass-card p-6 border-white/5">
+                                        <h3 className="text-lg font-bold text-white mb-4 uppercase tracking-widest text-xs flex items-center gap-2"><MessageSquare className="w-4 h-4 text-purple-400" /> Mentorship Q&A</h3>
+                                        <div className="py-8 text-center text-gray-500 bg-white/5 rounded-xl border border-white/5">
+                                            <p className="font-bold uppercase tracking-widest text-[10px] mb-4">No active queries.</p>
+                                            <button onClick={() => setShowDoubtModal(true)} className="btn-secondary text-xs">Ask Mentor</button>
                                         </div>
-                                    )) : (
-                                        <div className="py-8 text-center text-gray-500">
-                                            <Award className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                            <p className="font-bold uppercase tracking-widest text-xs">No cadets enrolled in this course yet.</p>
+                                    </div>
+
+                                    {/* Component 2: Cadets */}
+                                    {user?.role === 'admin' && (
+                                        <div className="glass-card p-6 border-white/5">
+                                            <h3 className="text-lg font-bold text-white mb-4 uppercase tracking-widest text-xs flex items-center gap-2"><Users className="w-4 h-4 text-primary-400" /> Enrolled Cadets</h3>
+                                            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                                                {course.enrolledStudents?.length > 0 ? course.enrolledStudents.map(studentId => (
+                                                    <div key={studentId} className="px-4 py-3 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between hover:bg-white/10 transition-colors">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-primary-500/20 text-primary-400 flex items-center justify-center font-bold text-xs">S</div>
+                                                            <div>
+                                                                <h4 className="text-white font-bold text-sm leading-none">Verified Cadet</h4>
+                                                                <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1 max-w-[120px] truncate">{studentId}</p>
+                                                            </div>
+                                                        </div>
+                                                        <a href={`/admin/students`} className="text-[10px] font-bold text-primary-400 hover:text-primary-300 uppercase tracking-widest border border-primary-500/20 px-2 py-1 rounded-lg">View</a>
+                                                    </div>
+                                                )) : (
+                                                    <div className="py-8 text-center text-gray-500 bg-white/5 rounded-xl border border-white/5">
+                                                        <p className="font-bold uppercase tracking-widest text-[10px]">No cadets enrolled yet.</p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
