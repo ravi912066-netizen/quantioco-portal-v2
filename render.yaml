@@ -4,7 +4,9 @@ services:
     runtime: node
     rootDir: server
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: node index.js
+    healthCheckPath: /
+    autoDeploy: true
     envVars:
       - key: PORT
         value: 10000
@@ -13,6 +15,6 @@ services:
       - key: MONGO_URI
         sync: false
       - key: JWT_SECRET
-        sync: false
+        value: quantioco_super_secret_jwt_key_2024
       - key: CLIENT_URL
-        sync: false
+        value: https://client-ten-mu-84.vercel.app
