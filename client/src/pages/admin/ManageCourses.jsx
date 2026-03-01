@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Edit2, Trash2, LayoutGrid, List, MoreVertical, X, Upload } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, LayoutGrid, List, MoreVertical, X, Upload, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/layout/AdminLayout';
 import API from '../../api/axios';
 import { toast } from 'react-hot-toast';
@@ -10,6 +11,7 @@ export default function ManageCourses() {
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(false);
     const [form, setForm] = useState({ name: '', description: '', price: '', category: 'Development', thumbnail: '', instructor: '' });
+    const navigate = useNavigate();
 
     const fetchCourses = async () => {
         try {
@@ -103,6 +105,7 @@ export default function ManageCourses() {
                                         <p className="text-lg font-bold text-white">₹{course.price}</p>
                                     </div>
                                     <div className="flex gap-2">
+                                        <button onClick={() => navigate(`/courses/${course._id}`)} className="p-2 hover:bg-blue-500/20 text-blue-400 rounded-lg transition-colors border border-white/10"><ExternalLink className="w-4 h-4" /></button>
                                         <button className="p-2 hover:bg-primary-500/20 text-primary-400 rounded-lg transition-colors border border-white/10"><Edit2 className="w-4 h-4" /></button>
                                         <button className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors border border-white/10"><Trash2 className="w-4 h-4" /></button>
                                     </div>

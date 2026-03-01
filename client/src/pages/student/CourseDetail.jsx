@@ -93,7 +93,7 @@ export default function CourseDetail() {
     if (!course) return <div className="min-h-screen bg-dark-900 flex items-center justify-center"><div className="skeleton w-64 h-64"></div></div>;
 
     // Payment Required View
-    if (!isEnrolled) {
+    if (!isEnrolled && user?.role !== 'admin') {
         // Use admin's actual UPI ID
         const upiId = "7379078059@ybl";
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=${upiId}&pn=Ravi%20Yadav&am=${course.price}&cu=INR`;
@@ -205,7 +205,7 @@ export default function CourseDetail() {
                     {/* Tabs and Info */}
                     <div className="glass-card p-8">
                         <div className="flex gap-8 border-b border-white/5 mb-8 overflow-x-auto">
-                            {['Overview', 'Lecture Notes', 'Assignments', 'Student Doubts'].map((tab, i) => (
+                            {['Overview', 'Lecture Notes', 'Assignments', 'Student Doubts', ...(user?.role === 'admin' ? ['Enrolled Cadets'] : [])].map((tab, i) => (
                                 <button
                                     key={i}
                                     onClick={() => setActiveTab(tab)}
@@ -269,6 +269,30 @@ export default function CourseDetail() {
                                     <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
                                     <p className="font-bold uppercase tracking-widest text-xs">Be the first to ask a question!</p>
                                     <button onClick={() => setShowDoubtModal(true)} className="btn-secondary mt-4 text-xs">Ask Mentor</button>
+                                </div>
+                            )}
+
+                            {activeTab === 'Enrolled Cadets' && user?.role === 'admin' && (
+                                <div className="space-y-4">
+                                    {course.enrolledStudents?.length > 0 ? course.enrolledStudents.map(studentId => (
+                                        <div key={studentId} className="p-4 glass-card bg-white/5 border border-white/5 rounded-2xl flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-full bg-primary-500/20 text-primary-400 flex items-center justify-center font-bold">
+                                                    S
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-white font-bold">Verified Cadet</h4>
+                                                    <p className="text-xs text-gray-400 uppercase tracking-widest mt-0.5 max-w-[200px] truncate">{studentId}</p>
+                                                </div>
+                                            </div>
+                                            <a href={`/admin/students`} className="btn-secondary text-xs">View Profile</a>
+                                        </div>
+                                    )) : (
+                                        <div className="py-8 text-center text-gray-500">
+                                            <Award className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                            <p className="font-bold uppercase tracking-widest text-xs">No cadets enrolled in this course yet.</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -337,22 +361,34 @@ export default function CourseDetail() {
                         </div>
                     </div>
 
-                    {/* Reward Card */}
-                    <div className="glass-card p-6 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-xl bg-yellow-500 flex items-center justify-center shadow-glow shadow-yellow-500/50">
-                                <Award className="w-6 h-6 text-white" />
-                            </div>
-                            <h4 className="font-bold text-white">Course Reward</h4>
+                    {/* Admin Action or Reward Card */}
+                    {user?.role === 'admin' ? (
+                        <div className="glass-card p-6 bg-primary-500/10 border-primary-500/20 text-center relative overflow-hidden">
+                            <div className="absolute top-[-50%] right-[-50%] w-32 h-32 bg-primary-500/20 rounded-full blur-2xl"></div>
+                            <Video className="w-10 h-10 text-primary-400 mx-auto mb-4" />
+                            <h4 className="font-black text-white mb-2 uppercase tracking-tighter text-xl">Host Live Class</h4>
+                            <p className="text-gray-400 text-xs mb-6 font-medium">Launch a real-time collaborative video session for the enrolled cadets.</p>
+                            <a href="/admin/live" className="btn-primary w-full text-xs flex justify-center uppercase tracking-widest font-black">
+                                Configure Room
+                            </a>
                         </div>
-                        <p className="text-gray-400 text-xs mb-6">Complete all lectures and assignments to unlock your certificate and <span className="text-yellow-400 font-bold underline">+500 XP bonus</span>.</p>
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="flex-1 h-2 rounded-full bg-dark-600 overflow-hidden">
-                                <div className="h-full bg-yellow-500 w-1/5 shadow-glow shadow-yellow-500/20"></div>
+                    ) : (
+                        <div className="glass-card p-6 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-xl bg-yellow-500 flex items-center justify-center shadow-glow shadow-yellow-500/50">
+                                    <Award className="w-6 h-6 text-white" />
+                                </div>
+                                <h4 className="font-bold text-white">Course Reward</h4>
                             </div>
-                            <span className="text-[10px] font-bold">20%</span>
+                            <p className="text-gray-400 text-xs mb-6">Complete all lectures and assignments to unlock your certificate and <span className="text-yellow-400 font-bold underline">+500 XP bonus</span>.</p>
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="flex-1 h-2 rounded-full bg-dark-600 overflow-hidden">
+                                    <div className="h-full bg-yellow-500 w-1/5 shadow-glow shadow-yellow-500/20"></div>
+                                </div>
+                                <span className="text-[10px] font-bold">20%</span>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </aside>
             </div>
 

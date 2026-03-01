@@ -62,8 +62,8 @@ const AppRoutes = () => {
       {/* Student Routes */}
       <Route path="/dashboard" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
       <Route path="/live" element={<ProtectedRoute role="student"><StudentLiveClasses /></ProtectedRoute>} />
-      <Route path="/courses" element={<ProtectedRoute role="student"><Courses /></ProtectedRoute>} />
-      <Route path="/courses/:id" element={<ProtectedRoute role="student"><CourseDetail /></ProtectedRoute>} />
+      <Route path="/courses" element={<ProtectedRoute><Courses /></ProtectedRoute>} />
+      <Route path="/courses/:id" element={<ProtectedRoute><CourseDetail /></ProtectedRoute>} />
       <Route path="/assignments" element={<ProtectedRoute role="student"><StudentAssignments /></ProtectedRoute>} />
       <Route path="/problems" element={<ProtectedRoute role="student"><ProblemTracker /></ProtectedRoute>} />
       <Route path="/contests" element={<ProtectedRoute role="student"><ContestTracker /></ProtectedRoute>} />
