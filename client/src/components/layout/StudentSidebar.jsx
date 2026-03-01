@@ -30,7 +30,7 @@ export default function StudentSidebar() {
         <motion.aside
             initial={{ x: -280 }}
             animate={{ x: 0 }}
-            className="w-72 min-h-screen bg-dark-800 border-r border-white/5 flex flex-col"
+            className="w-60 min-h-screen bg-dark-800 border-r border-white/5 flex flex-col"
         >
             {/* Logo */}
             <div className="p-6 border-b border-white/5">
