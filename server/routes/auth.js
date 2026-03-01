@@ -8,16 +8,24 @@ const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expires
 const OTP = require('../models/OTP');
 const twilio = require('twilio');
 
-// Initialize Twilio client if env vars exist
 const twilioClient = (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN)
     ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
     : null;
 
+const nodemailer = require('nodemailer');
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER || 'ravi@quantioco.io',
+        pass: process.env.EMAIL_PASS
+    }
+});
+
 // POST /api/auth/send-otp (For Registration)
 router.post('/send-otp', async (req, res) => {
     try {
-        const { phone } = req.body;
-        const identifier = phone; // Using phone as identifier for registration
+        const { phone, email } = req.body;
+        const identifier = phone || email;
         const otpValue = Math.floor(100000 + Math.random() * 900000).toString();
 
         // Save OTP to DB
@@ -27,27 +35,46 @@ router.post('/send-otp', async (req, res) => {
             { upsert: true, new: true }
         );
 
-        if (twilioClient && process.env.TWILIO_PHONE_NUMBER) {
+        let smsSent = false;
+        let emailSent = false;
+
+        // Send SMS
+        if (twilioClient && process.env.TWILIO_PHONE_NUMBER && phone) {
             try {
                 await twilioClient.messages.create({
                     body: `Your Quantioco.io verification code is: ${otpValue}`,
                     from: process.env.TWILIO_PHONE_NUMBER,
-                    to: phone.startsWith('+') ? phone : `+91${phone}` // Assuming India default if no country code
+                    to: phone.startsWith('+') ? phone : `+91${phone}`
                 });
-                console.log(`[AUTH] Real SMS OTP sent to ${phone}`);
-                return res.status(200).json({ message: 'OTP sent to your mobile via SMS!' });
-            } catch (twilioErr) {
-                console.error('[AUTH] Twilio Error:', twilioErr);
-                // Fallback to console if Twilio fails
-            }
+                smsSent = true;
+            } catch (err) { console.error('Twilio Error:', err); }
         }
 
-        // MOCK / FALLBACK: Log OTP for development
-        console.log(`\n-----------------------------------`);
-        console.log(`[AUTH] MOCK OTP for ${identifier}: ${otpValue}`);
-        console.log(`-----------------------------------\n`);
+        // Send Email
+        if (process.env.EMAIL_PASS && email) {
+            try {
+                await transporter.sendMail({
+                    from: `"Quantioco.io" <${process.env.EMAIL_USER}>`,
+                    to: email,
+                    subject: "Your Verification Code - Quantioco.io",
+                    text: `Your verification code is: ${otpValue}`,
+                    html: `<div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
+                        <h2 style="color: #6366f1;">Welcome to Quantioco.io</h2>
+                        <p>Use the following code to verify your identity:</p>
+                        <h1 style="letter-spacing: 10px; color: #1e1b4b;">${otpValue}</h1>
+                        <p>Valid for 10 minutes.</p>
+                    </div>`
+                });
+                emailSent = true;
+            } catch (err) { console.error('Email Error:', err); }
+        }
 
-        res.status(200).json({ message: 'OTP generated (Check server logs - add Twilio keys for real SMS)' });
+        console.log(`\n[AUTH] OTP for ${identifier}: ${otpValue} (SMS: ${smsSent}, Email: ${emailSent})\n`);
+
+        res.status(200).json({
+            message: `OTP sent successfully! ${smsSent ? 'SMS delivered. ' : ''}${emailSent ? 'Email delivered.' : ''}`,
+            mockOtp: !smsSent && !emailSent ? otpValue : null // For development
+        });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -59,22 +86,14 @@ router.post('/register', async (req, res) => {
         const { name, email, phone, password, role, otp } = req.body;
         const identifier = phone; // using phone for registration verification
 
-        // Master admin auto-approval logic
-        const isMasterAdmin = email === 'ravisyro@gmail.com' || email === 'ravi@quantioco.io' || role === 'admin';
+        // ALL Users must verify OTP
+        const otpRecord = await OTP.findOne({ identifier, otp });
+        if (!otpRecord) return res.status(400).json({ message: 'Invalid or expired OTP' });
+        await OTP.deleteOne({ _id: otpRecord._id });
 
-        if (isMasterAdmin) {
-            // Verify OTP ONLY for admins
-            const otpRecord = await OTP.findOne({ identifier, otp });
-            if (!otpRecord) return res.status(400).json({ message: 'Invalid or expired OTP' });
-            await OTP.deleteOne({ _id: otpRecord._id });
-        }
-
-        // Check if user already exists
-        const exists = await User.findOne({ email });
-        if (exists) return res.status(400).json({ message: 'Email already registered' });
-
-        // Create user. Students are pending admin approval by default
-        const user = await User.create({ name, email, phone, password, role: role || 'student', isApproved: isMasterAdmin });
+        // Create user. 
+        // Auto-approve if OTP verified (User's latest request)
+        const user = await User.create({ name, email, phone, password, role: role || 'student', isApproved: true });
 
         if (!user.isApproved) {
             return res.status(201).json({

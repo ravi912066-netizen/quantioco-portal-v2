@@ -27,8 +27,8 @@ export default function Register() {
     const handleSendOTP = async () => {
         setLoading(true);
         try {
-            await API.post('/auth/send-otp', { phone: formData.phone });
-            toast.success('OTP sent to your mobile! Check server logs for demo.');
+            await API.post('/auth/send-otp', { phone: formData.phone, email: formData.email });
+            toast.success('OTP sent to your mobile and email! Check both.');
             setStep(2);
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to send OTP');
@@ -59,11 +59,7 @@ export default function Register() {
 
     const handleInitialSubmit = async (e) => {
         e.preventDefault();
-        if (formData.role === 'admin') {
-            await handleSendOTP();
-        } else {
-            await handleRegister();
-        }
+        await handleSendOTP();
     };
 
     return (
