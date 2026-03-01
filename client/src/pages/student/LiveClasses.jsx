@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Video, UserCheck, Play, Link as LinkIcon, FileText } from 'lucide-react';
+import { Video, UserCheck, Play, Link as LinkIcon, FileText, Maximize } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { JitsiMeeting } from '@jitsi/react-sdk';
 import StudentLayout from '../../components/layout/StudentLayout';
@@ -12,6 +12,8 @@ export default function StudentLiveClasses() {
     const [classes, setClasses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeRoom, setActiveRoom] = useState(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const containerRef = useRef(null);
 
     const fetchClasses = async () => {
         try {
@@ -30,10 +32,29 @@ export default function StudentLiveClasses() {
         }
     };
 
+    const toggleFullScreen = () => {
+        if (!document.fullscreenElement) {
+            containerRef.current?.requestFullscreen().catch(err => {
+                toast.error(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    };
+
     useEffect(() => {
         fetchClasses();
         const interval = setInterval(fetchClasses, 10000); // Poll for live updates
-        return () => clearInterval(interval);
+
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
     }, [activeRoom]);
 
     const handleJoinClass = async (liveClass) => {
@@ -49,7 +70,7 @@ export default function StudentLiveClasses() {
     if (activeRoom) {
         return (
             <StudentLayout>
-                <div className="h-[calc(100vh-6rem)] rounded-3xl overflow-hidden relative glass-card p-1 flex flex-col border border-primary-500/20 shadow-glow">
+                <div ref={containerRef} className="h-[calc(100vh-6rem)] rounded-3xl overflow-hidden relative glass-card p-1 flex flex-col border border-primary-500/20 shadow-glow bg-dark-900">
                     <div className="bg-dark-800 p-4 flex justify-between items-center rounded-t-3xl border-b border-white/5">
                         <div>
                             <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center gap-2">
@@ -58,12 +79,20 @@ export default function StudentLiveClasses() {
                             </h2>
                             <p className="text-xs text-primary-400 font-medium">Host: {activeRoom.instructor?.name}</p>
                         </div>
-                        <button
-                            onClick={() => setActiveRoom(null)}
-                            className="btn-primary bg-red-500 hover:bg-red-600 shadow-red-500/25 flex items-center gap-2"
-                        >
-                            Disconnect
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={toggleFullScreen}
+                                className="btn-secondary flex items-center gap-2"
+                            >
+                                <Maximize className="w-4 h-4" /> {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                            </button>
+                            <button
+                                onClick={() => setActiveRoom(null)}
+                                className="btn-primary bg-red-500 hover:bg-red-600 shadow-red-500/25 flex items-center gap-2"
+                            >
+                                Disconnect
+                            </button>
+                        </div>
                     </div>
                     <div className="flex-1 bg-black flex">
                         <div className="flex-1">

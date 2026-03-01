@@ -15,6 +15,7 @@ export default function CourseDetail() {
     const [course, setCourse] = useState(null);
     const [activeLecture, setActiveLecture] = useState(null);
     const [assignments, setAssignments] = useState([]);
+    const [submittedTasks, setSubmittedTasks] = useState([]);
     const [showDoubtModal, setShowDoubtModal] = useState(false);
     const [doubtText, setDoubtText] = useState('');
     const [isEnrolled, setIsEnrolled] = useState(false);
@@ -25,16 +26,17 @@ export default function CourseDetail() {
     useEffect(() => {
         const fetchCourseData = async () => {
             try {
-                const [courseRes, assignRes] = await Promise.all([
+                const [courseRes, assignRes, subRes] = await Promise.all([
                     API.get(`/courses/${id}`),
-                    API.get('/assignments')
+                    API.get('/assignments'),
+                    user?.role === 'student' ? API.get('/assignments/submissions/me') : { data: [] }
                 ]);
                 const cData = courseRes.data;
                 setCourse(cData);
 
                 // Filter assignments for this course by course name or ID
-                // The assignments endpoint currently returns all, so we filter frontend:
                 setAssignments(assignRes.data.filter(a => a.course === cData.name || a.course === cData._id));
+                setSubmittedTasks(subRes.data.map(s => s.assignment?._id));
 
                 if (user?.enrolledCourses?.includes(cData._id)) {
                     setIsEnrolled(true);
@@ -248,11 +250,16 @@ export default function CourseDetail() {
                                                 </div>
                                                 <div>
                                                     <h4 className="text-white font-bold">{a.title}</h4>
-                                                    <p className="text-xs text-yellow-500 font-bold uppercase tracking-widest mt-0.5">{a.xpReward} XP Reward</p>
+                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                        <span className="text-[10px] text-yellow-500 font-bold uppercase tracking-widest">{a.xpReward} XP Reward</span>
+                                                        {submittedTasks.includes(a._id) && (
+                                                            <span className="text-[10px] text-green-400 font-black tracking-widest uppercase bg-green-500/20 px-2 py-0.5 rounded border border-green-500/30">Submitted</span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                             <a href={`/assignments`} className="badge bg-primary-500 text-white font-black uppercase tracking-widest transition-transform hover:scale-105">
-                                                Go to Lab
+                                                {submittedTasks.includes(a._id) ? 'View Lab' : 'Start Lab'}
                                             </a>
                                         </div>
                                     )) : (

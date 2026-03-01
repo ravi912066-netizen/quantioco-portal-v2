@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Video, Plus, UserCheck, X, Link as LinkIcon, FileText, Send } from 'lucide-react';
+import { Video, Plus, UserCheck, X, Link as LinkIcon, FileText, Send, Maximize } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { JitsiMeeting } from '@jitsi/react-sdk';
 import AdminLayout from '../../components/layout/AdminLayout';
@@ -15,6 +15,8 @@ export default function AdminLiveClasses() {
     const [isCreating, setIsCreating] = useState(false);
     const [activeRoom, setActiveRoom] = useState(null);
     const [newMaterial, setNewMaterial] = useState({ title: '', link: '', type: 'note' });
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const containerRef = useRef(null);
 
     const fetchClasses = async () => {
         try {
@@ -31,10 +33,29 @@ export default function AdminLiveClasses() {
         }
     };
 
+    const toggleFullScreen = () => {
+        if (!document.fullscreenElement) {
+            containerRef.current?.requestFullscreen().catch(err => {
+                toast.error(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    };
+
     useEffect(() => {
         fetchClasses();
         const interval = setInterval(fetchClasses, 10000); // Poll for live attendees
-        return () => clearInterval(interval);
+
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
     }, []);
 
     const handleCreateClass = async (e) => {
@@ -89,18 +110,26 @@ export default function AdminLiveClasses() {
     if (activeRoom) {
         return (
             <AdminLayout>
-                <div className="h-[calc(100vh-6rem)] rounded-3xl overflow-hidden relative glass-card p-1 flex flex-col">
+                <div ref={containerRef} className="h-[calc(100vh-6rem)] rounded-3xl overflow-hidden relative glass-card p-1 flex flex-col bg-dark-900">
                     <div className="bg-dark-800 p-4 flex justify-between items-center rounded-t-3xl border-b border-white/5">
                         <div>
                             <h2 className="text-xl font-bold text-white uppercase tracking-wider">{activeRoom.title}</h2>
                             <p className="text-xs text-primary-400 font-medium">Instructor: {user.name} • Live Attendees: {activeRoom.attendees?.length || 0}</p>
                         </div>
-                        <button
-                            onClick={() => handleEndClass(activeRoom._id)}
-                            className="btn-primary bg-red-500 hover:bg-red-600 shadow-red-500/25 flex items-center gap-2"
-                        >
-                            <X className="w-4 h-4" /> End Session
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={toggleFullScreen}
+                                className="btn-secondary flex items-center gap-2"
+                            >
+                                <Maximize className="w-4 h-4" /> {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                            </button>
+                            <button
+                                onClick={() => handleEndClass(activeRoom._id)}
+                                className="btn-primary bg-red-500 hover:bg-red-600 shadow-red-500/25 flex items-center gap-2"
+                            >
+                                <X className="w-4 h-4" /> End Session
+                            </button>
+                        </div>
                     </div>
                     <div className="flex-1 bg-black flex">
                         <div className="flex-1">
