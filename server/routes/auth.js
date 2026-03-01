@@ -85,7 +85,11 @@ router.post('/register', async (req, res) => {
 
         res.status(201).json({
             token: generateToken(user._id),
-            user: { id: user._id, name: user.name, email: user.email, role: user.role, xp: user.xp, isApproved: user.isApproved }
+            user: {
+                id: user._id, _id: user._id, name: user.name, email: user.email,
+                role: user.role, xp: user.xp, avatar: user.avatar, isApproved: user.isApproved,
+                enrolledCourses: user.enrolledCourses, cfHandle: user.cfHandle, cfRating: user.cfRating, cfMaxRating: user.cfMaxRating, cfRank: user.cfRank
+            }
         });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -106,7 +110,11 @@ router.post('/login', async (req, res) => {
 
         res.json({
             token: generateToken(user._id),
-            user: { id: user._id, name: user.name, email: user.email, role: user.role, xp: user.xp, avatar: user.avatar, isApproved: user.isApproved }
+            user: {
+                id: user._id, _id: user._id, name: user.name, email: user.email,
+                role: user.role, xp: user.xp, avatar: user.avatar, isApproved: user.isApproved,
+                enrolledCourses: user.enrolledCourses, cfHandle: user.cfHandle, cfRating: user.cfRating, cfMaxRating: user.cfMaxRating, cfRank: user.cfRank
+            }
         });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -156,7 +164,11 @@ router.post('/login-verify', async (req, res) => {
 
         res.json({
             token: generateToken(user._id),
-            user: { id: user._id, name: user.name, email: user.email, role: user.role, xp: user.xp, avatar: user.avatar }
+            user: {
+                id: user._id, _id: user._id, name: user.name, email: user.email,
+                role: user.role, xp: user.xp, avatar: user.avatar, isApproved: user.isApproved,
+                enrolledCourses: user.enrolledCourses, cfHandle: user.cfHandle, cfRating: user.cfRating, cfMaxRating: user.cfMaxRating, cfRank: user.cfRank
+            }
         });
     } catch (err) {
         res.status(500).json({ message: err.message });

@@ -146,8 +146,28 @@ export default function ManageCourses() {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-2 font-bold uppercase tracking-wider">Price (INR)</label>
-                                        <input name="price" type="number" required className="input-field" placeholder="499" onChange={(e) => setForm({ ...form, price: e.target.value })} />
+                                        <label className="block text-sm font-medium text-gray-400 mb-2 font-bold uppercase tracking-wider flex justify-between">
+                                            <span>Price (INR)</span>
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    className="accent-primary-500 w-4 h-4 cursor-pointer"
+                                                    checked={form.price === 0 || form.price === '0'}
+                                                    onChange={(e) => setForm({ ...form, price: e.target.checked ? 0 : '' })}
+                                                />
+                                                <span className="text-[10px] text-green-400">Make Free</span>
+                                            </label>
+                                        </label>
+                                        <input
+                                            name="price"
+                                            type="number"
+                                            required
+                                            disabled={form.price === 0 || form.price === '0'}
+                                            className={`input-field ${form.price === 0 || form.price === '0' ? 'opacity-50' : ''}`}
+                                            placeholder={form.price === 0 || form.price === '0' ? "Free Course" : "499"}
+                                            value={form.price}
+                                            onChange={(e) => setForm({ ...form, price: e.target.value })}
+                                        />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-400 mb-2 font-bold uppercase tracking-wider">Instructor</label>
