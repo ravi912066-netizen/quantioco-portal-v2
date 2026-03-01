@@ -89,9 +89,9 @@ export default function CourseDetail() {
 
     // Payment Required View
     if (!isEnrolled) {
-        // Use a generic test UPI ID, generate QR url from an open API
-        const upiId = "admin@upi";
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=${upiId}&pn=Quantioco%20Admin&am=${course.price}&cu=INR`;
+        // Use admin's actual UPI ID
+        const upiId = "7379078059@ybl";
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=${upiId}&pn=Ravi%20Yadav&am=${course.price}&cu=INR`;
 
         return (
             <StudentLayout>

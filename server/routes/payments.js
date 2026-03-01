@@ -4,6 +4,16 @@ const EnrollmentRequest = require('../models/EnrollmentRequest');
 const Course = require('../models/Course');
 const User = require('../models/User');
 const { protect, adminOnly } = require('../middleware/auth');
+const notifier = require('node-notifier');
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER || 'test@gmail.com',
+        pass: process.env.EMAIL_PASS || 'test'
+    }
+});
 
 // POST create enrollment request (from student clicking UPI I Have Paid)
 router.post('/enroll', protect, async (req, res) => {
@@ -27,6 +37,39 @@ router.post('/enroll', protect, async (req, res) => {
             course: courseId,
             amount: amount
         });
+
+        const courseObj = await Course.findById(courseId);
+
+        // --- Notifications ---
+        const notificationMessage = `Payment request of ₹${amount} received from ${req.user.name} for course ${courseObj?.name || 'Unknown'}. Please verify in portal.`;
+
+        // 1. Laptop Notification
+        notifier.notify({
+            title: 'New Student Enrollment! 🚀',
+            message: notificationMessage,
+            sound: true,
+            wait: false
+        });
+
+        // 2. Email Notification
+        try {
+            await transporter.sendMail({
+                from: process.env.EMAIL_USER || 'alerts@quantioco.io',
+                to: process.env.ADMIN_EMAIL || 'ravi912066@gmail.com',
+                subject: '🔥 Quantioco: New UPI Payment Received!',
+                html: `
+                    <h2>New Student Enrollment Request</h2>
+                    <p><strong>Student:</strong> ${req.user.name} (${req.user.email})</p>
+                    <p><strong>Course:</strong> ${courseObj?.name || courseId}</p>
+                    <p><strong>Amount:</strong> ₹${amount}</p>
+                    <p>Please check your PhonePe/Bank to confirm receipt, then log in to the Quantioco Admin Portal to approve their access.</p>
+                `
+            });
+            console.log("Email notification sent to admin");
+        } catch (mailErr) {
+            console.log("Skipped sending email (missing/invalid .env credentials):", mailErr.message);
+        }
+        // --- End Notifications ---
 
         res.status(201).json({ message: 'Enrollment request submitted.', request });
     } catch (err) {
